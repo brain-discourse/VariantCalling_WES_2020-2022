@@ -10,10 +10,10 @@ module load r/3.6.0
 module load bedtools
 module load snpeff
 
-for filename in `cat /proj/heinzenlab/projects/somaticNov2020/germline/CNV_MG/WGS/bam.list.txt`
+for filename in $(cat /proj/heinzenlab/projects/somaticNov2020/germline/CNV_MG/WGS/bam.list.txt)
 
 do 
-sbatch --time=100:00:00 --mem=8g --job-name unzip --wrap="sh /proj/heinzenlab/projects/somaticNov2020/germline/CNV_MG/WGS/gen.roi.sh $filename"
+sbatch --time=100:00:00 --mem=8g --job-name gen-roi --wrap="sh /proj/heinzenlab/projects/somaticNov2020/germline/CNV_MG/WGS/gen.roi.sh $filename"
 
 sleep 1
 done
@@ -42,5 +42,8 @@ module load r/3.6.0
 module load bedtools
 module load snpeff
 
-for f in *_roiSummary.txt ; do Rscript /proj/heinzenlab/projects/somaticNov2020/germline/CNV_MG/CNVRadar/CNV_Radar-master/CNV_Radar_create_control.r --directory /proj/heinzenlab/projects/somaticNov2020/germline/CNV_MG/WGS/controls/  >> create_normal_cohort.log 2>&1 ; done
+for f in *_roiSummary.txt
+do
+	Rscript /proj/heinzenlab/projects/somaticNov2020/germline/CNV_MG/CNVRadar/CNV_Radar-master/CNV_Radar_create_control.r --directory /proj/heinzenlab/projects/somaticNov2020/germline/CNV_MG/WGS/controls/ >> create_normal_cohort.log 2>&1
+done
 

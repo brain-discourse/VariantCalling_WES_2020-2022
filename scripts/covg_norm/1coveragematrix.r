@@ -1,147 +1,63 @@
-# This script takes all coverage by base outputs from GATK depth of coverage analysis and combines them to generate a matrix where rows are sites and columns are sample names 
+# 1coveragematrix.r
+# Usage: Rscript 1coveragematrix.r
+# Description: Combines GATK coverage-by-base outputs into a matrix (rows: sites, columns: samples).
 
 library(readr)
 library(dplyr)
 library(tidyr)
 library(data.table)
-#files <- list.files(path="/proj/heinzenlab/projects/somaticNov2020/coverage/coveragebybase.txt")
-files<-list.files(c("/proj/heinzenlab/projects/somaticNov2020/coverage/UMB1474-pfc-1b123/",
-"/proj/heinzenlab/projects/somaticNov2020/coverage/UMB1499-pfc-1b1/",
-"/proj/heinzenlab/projects/somaticNov2020/coverage/UMB1712-pfc-1b12/",
-"/proj/heinzenlab/projects/somaticNov2020/coverage/UMB4548-pfc-1b1/",
-"/proj/heinzenlab/projects/somaticNov2020/coverage/UMB4672-pfc-1b12_200x/",
-"/proj/heinzenlab/projects/somaticNov2020/coverage/UMB4842-pfc-1b1/",
-"/proj/heinzenlab/projects/somaticNov2020/coverage/UMB5161-pfc-1b1/",
-"/proj/heinzenlab/projects/somaticNov2020/coverage/UMB5238-pfc-1b123/",
-"/proj/heinzenlab/projects/somaticNov2020/coverage/UMB5391-pfc-1b12/",
-"/proj/heinzenlab/projects/somaticNov2020/coverage/UMB818-pfc-1b1/",
-"/proj/heinzenlab/projects/somaticNov2020/coverage/UMB914-pfc-1b12/",
-"/proj/heinzenlab/projects/somaticNov2020/coverage/4638_1024-pfc-bulk/",
-"/proj/heinzenlab/projects/somaticNov2020/coverage/4643_1024-pfc-bulk/",
-"/proj/heinzenlab/projects/somaticNov2020/coverage/1465_1024-pfc-bulk/",
-"/proj/heinzenlab/projects/somaticNov2020/coverage/UMB1024-pfc-1b12/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/MIAMI-3772_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/MIAMI-3797_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/SH-00-38_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/SH-01-31/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/SH-01-37_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/SH-01-46_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/SH-02-06_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/SH-02-12_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/SH-03-11_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/SH-03-15_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/SH-03-17_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/SH-03-28_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/SH-03-50_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/SH-03-63_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/SH-04-05_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/SH-04-08_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/SH-04-19_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/SH-04-21_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/SH-05-10_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/SH-05-16_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/SH-05-36_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/SH-07-28_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/SH-07-37_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/SH-08-04/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/SH-94-35_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/SH-95-02/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/SH-95-21_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/SH-96-32_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/SH-98-32/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UKY-1003/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UKY-1066/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1027_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1038_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1065_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1101_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1104_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1133/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1135/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1209_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1259/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1274/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1277/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1322/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1347/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1362/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1363/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1379/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1410/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1428/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1441/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1455/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1461/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1464/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1498/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1539/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1544/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1569_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1583_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1614_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1668_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1672/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1675/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1710_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1743/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-177/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1789/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1818/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1827_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1830_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1831/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1841/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1843_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1846_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1847_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1859/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1861/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1866_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1867_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1907/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1935_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1936/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1939/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-1940/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-240/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-260/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-288/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-290/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-4263_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-4543/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-4549_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-4590_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-4593_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-4598_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-4640_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-4724/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-4781/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-4782_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-4841_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-4916_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-4976/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-5028/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-5077_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-5086/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-5087_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-5088/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-5089_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-5114/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-5116/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-5117/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-5120/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-5123/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-5171/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-5179/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-650/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-671_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-689/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-794_combined/",
-"/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-914/"), pattern="coverage$", full.names = TRUE)
-sites <- read.table(files[1], header=FALSE, sep=",")[,1]     # gene names
-df    <- do.call(cbind,lapply(files,function(fn)read.table(fn,header=FALSE, sep=",")[,4]))
-df    <- cbind(sites,df)
-df<-as.data.frame(df)
-write.table(df, "site_matrix_table.txt")
-write_tsv(df, "site_matrix.txt")
-q()
+
+# ----------- CONFIGURATION -----------
+coverage_dirs <- c(
+  "/proj/heinzenlab/projects/somaticNov2020/coverage/UMB1474-pfc-1b123/",
+  "/proj/heinzenlab/projects/somaticNov2020/coverage/UMB1499-pfc-1b1/",
+  # ... add all other directories here ...
+  "/overflow/heinzenlab/dbgap-NABEC/coverage/UMARY-914/"
+)
+file_pattern <- "coverage$" # pattern to match coverage files
+
+# ----------- FUNCTIONS -----------
+
+# List all coverage files in the given directories
+get_coverage_files <- function(dirs, pattern) {
+  files <- unlist(lapply(dirs, function(dir) {
+    list.files(path = dir, pattern = pattern, full.names = TRUE)
+  }))
+  return(files)
+}
+
+# Read site identifiers from the first file
+get_sites <- function(file) {
+  sites <- read.table(file, header = FALSE, sep = ",")[, 1]
+  return(sites)
+}
+
+# Read coverage values (column 4) from all files
+get_coverage_matrix <- function(files) {
+  coverage_list <- lapply(files, function(fn) {
+    read.table(fn, header = FALSE, sep = ",")[, 4]
+  })
+  coverage_matrix <- do.call(cbind, coverage_list)
+  return(coverage_matrix)
+}
+
+# Write output tables
+write_outputs <- function(sites, coverage_matrix, out_prefix = "site_matrix") {
+  df <- as.data.frame(cbind(sites, coverage_matrix))
+  write.table(df, paste0(out_prefix, "_table.txt"), row.names = FALSE)
+  write_tsv(df, paste0(out_prefix, ".txt"))
+}
+
+# ----------- MAIN SCRIPT -----------
+
+main <- function() {
+  files <- get_coverage_files(coverage_dirs, file_pattern)
+  if (length(files) == 0) {
+    stop("No coverage files found. Check your directories and pattern.")
+  }
+  sites <- get_sites(files[1])
+  coverage_matrix <- get_coverage_matrix(files)
+  write_outputs(sites, coverage_matrix)
+}
+
+main()

@@ -18,10 +18,10 @@ done
 
 echo "Merging files with identical headers"
 
- #get header from first file
+#get header from first file
   head -n 1 *_final_annotated_merged.tsv | head -n 1 > all_annotated_and_merged_final.txt
 
- #Append all files 
+#Append all files 
 
   for file in *_final_annotated_merged.tsv; do
     tail -n +2 "$file" >> all_annotated_and_merged_final.txt
@@ -38,7 +38,30 @@ wc -l all_annotated_and_merged_final.txt
 # ---------- STEP 4: Filtering (Optional)  ----------
 
 echo "Filtering for PASS and CCDS annotations"
-awk -F "\t" 'NR==1; NR > 1 { if(($343 == "PASS") && ($373 == "bed")) { print } }' all_annotated_and_merged_final.txt > all_annotated_and_merged_final_PASS_CCDS.txt
+awk -F "\t" '
+NR==1 {
+  for (i=1; i<=NF; i++) {
+awk -F "\t" '
+NR==1 {
+  for(i=1;i<=NF;i++) {
+    if($i=="Gene.refGene") gene_col=i
+  }
+  print
+  next
+}
+NR>1 {
+  if(gene_col && $gene_col=="AKT3") print
+}
+' all_annotated_and_merged_final.txt > all_annotated_and_merged_filtered_AKT3.txt
+    if ($i == "Bed_Name") bed_col=i;
+  }
+  print;
+  next;
+}
+echo "Formatting merged table using R for brain_only"
+  if (($filter_col == "PASS") && ($bed_col == "bed")) print;
+}
+' all_annotated_and_merged_final.txt > all_annotated_and_merged_final_PASS_CCDS.txt
 
 echo "Filtering for specific genes (e.g., AKT3)"
 awk -F "\t" 'NR==1; NR > 1 { if($3 == "AKT3") { print } }' all_annotated_and_merged_final.txt > all_annotated_and_merged_filtered_AKT3.txt

@@ -80,7 +80,7 @@ if (length(argString) == 0){
 
 params=getopt( spec, argString)
 
-if ( !is.null(params$help) | is.null(params$control) | is.null(params$roi) | is.null(params$vcf) ) {
+if ( !is.null(params$help) || is.null(params$control) || is.null(params$roi) || is.null(params$vcf) ) {
   add_to_log(lvl="error", func="getopt", message = "\nEither you asked for help or you are missing a required parameters: control, roi, vcf\n\n")
   add_to_log(lvl="error", func="getopt", message = usage)
   q(save="no",status=1,runLast=FALSE)
@@ -346,7 +346,7 @@ for(i in 1:model_params$iter) {
   for(chr in unique(ids$Chr)[ grep("^[0-9]", unique(ids$Chr))]) { # Iterate across autosomal chromosomes
     
     add_to_log(lvl = "debug", func="main", message=paste("Analyzing Chr", chr, "for iteration", i))
-    if( (sum(ids$Chr==chr) > 10) & (sum(f$CHROM==chr) > 10) ) {
+    if( (sum(ids$Chr==chr) > 10) && (sum(f$CHROM==chr) > 10) ) {
       
       #---------------------------------------------------------------------
       # Going to use a linear spline to predict copy neutrality depth
@@ -420,7 +420,7 @@ for(i in 1:model_params$iter) {
         chrcpts <- chrcpts[ , c("Chr", "Start", "Stop", "RGP", "log2FC", "Qscore", "ObservedDepth", "ExpectedDepth", "Zscore", "HetVar")]
         chrcpts <- chrcpts[ chrcpts$ExpectedDepth > model_params$minExpDepth & (chrcpts$Qscore > model_params$threshHigh | chrcpts$Qscore < model_params$threshLow), ] 
         if(nrow(chrcpts) > 0) {
-          for(j in 1:nrow(chrcpts)) {
+          for(j in seq_len(nrow(chrcpts))) {
             kp[ids$Chr==chrcpts$Chr[j] & chrcpts$Start[j] <= ids$End & ids$Beg <= chrcpts$Stop[j]] <- F
           }
         }
@@ -434,7 +434,7 @@ for(i in 1:model_params$iter) {
       #---------------------------------------------------------------------
       # Make the plot of the log2 fold change by chromosome
       #---------------------------------------------------------------------      
-      if(chr %in% params$printChrs & i==model_params$iter) {
+      if(chr %in% params$printChrs && i==model_params$iter) {
         
        add_to_log(lvl = "debug", func = "chrPlot", message = paste("Plotting Chr", chr," for iteration", i))
         

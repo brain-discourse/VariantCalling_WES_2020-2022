@@ -11,7 +11,7 @@
 
 module load r/3.6.0
 module load bedtools
-module load snpeff/
+module load snpeff/4.3
 
 for filename in `cat /proj/heinzenlab/projects/somaticNov2020/germline/CNV_MG/WGS/vcf.list` 
 do 
@@ -21,8 +21,6 @@ done
 
  #---------- STEP 2: Generate annotation files ----------
 
- #!/bin/bash
- 
  #SBATCH -N 1
 #SBATCH -n 6
 #SBATCH -p general
@@ -33,14 +31,13 @@ done
 module load r/3.6.0
 module load bedtools
 module load snpeff/
+module load snpeff/4.3
 
-filename=$1 #gvcf file
-
-java -jar /nas/longleaf/apps/snpeff/4.3/snpEff/SnpSift.jar annotate /proj/heinzenlab/projects/somaticNov2020/germline/CNV_MG/dbSnp/All_20180418.vcf.gz "$filename" | bgzip > $(basename "$filename" .ext).annotated
+java -jar /nas/longleaf/apps/snpeff/4.3/snpEff/SnpSift.jar annotate /proj/heinzenlab/projects/somaticNov2020/germline/CNV_MG/dbSnp/All_20180418.vcf.gz "$filename" | bgzip > $(basename "$filename" .g.vcf.gz).annotated
 
 
  #---------- STEP 3: Run CNV radar -----------------------------
- #!/bin/bash
+ 
 #SBATCH -N 1
 #SBATCH -n 6
 #SBATCH -p general

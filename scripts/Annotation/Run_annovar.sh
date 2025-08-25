@@ -5,7 +5,7 @@
 #SBATCH --output=full_annot_%j.out
 
 module load gatk/4.1.7.0 
-module add samtools/1.11
+module load samtools/1.11
 module load annovar/20200609
 module load r/3.6.0
 
@@ -16,7 +16,7 @@ HUMANDB=/proj/heinzenlab/users/meethila1/humandb
 SAMPLES=$DIR/mutect_filtered_samplelist.txt #txt file containing all sample names for annotation
 
 # BED files
-BED1=hg38_CCDShg18exons+2bp.CCDSv22.bed
+BED1=hg38_CCDSexons+2bp.CCDSv22.bed
 BED2=hg38_JEME_db_final.txt
 BED3=hg38_links_db_final.txt
 
@@ -65,7 +65,7 @@ for SAMPLE in $(cat "$SAMPLES"); do
   -buildver hg38 -out "$AVOUTPUT" \
   -remove \
   -protocol refGene,cytoBand,gnomad211_exome,gnomad211_genome,gene4denovo201907,exac03,intervar_20180118,dbscsnv11,avsnp150,kaviar_20150923,dbnsfp41a,dbnsfp30a,revel,ljb26_all,regsnpintron,clinvar_20200316,kaplanis_v1,VKGL,cosmic92_coding,cosmic92_noncoding \
-  -operation g,r,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f \
+  -operation g,r,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f,f \
   -nastring . \
   -vcfinput \
 
@@ -109,7 +109,7 @@ Rscript - <<EOF
     annout3 <- left_join(annout2, lof_metrics, by = "Gene.refGene")
     
     annout3 <- annout3 %>%
-      rename(ID = `Otherinfo6`)
+      rename(ID = names(annout3)[which(sapply(annout3, function(x) all(grepl("^chr[0-9XYM]+:[0-9]+:[ACGT]+:[ACGT]+$", x) | is.na(x))) )])
     
     final_out <- left_join(annout3, vcf_bed_merged, by = "ID")
     
@@ -120,4 +120,3 @@ EOF
   echo "Completed sample: $SAMPLE"
 
 done
-
