@@ -91,7 +91,7 @@ RAW_VCF_LIST=$INPUT_DIR/joint_raw_genotyped_list.txt
 for CHR in chr{1..22} chrX chrY; do
   echo "$INPUT_DIR/filtered_snps_${CHR}.vcf" >> "$FILTERED_SNP_LIST"
   echo "$INPUT_DIR/filtered_indels_${CHR}.vcf" >> "$FILTERED_INDEL_LIST"
-  echo "$INPUT_DIR/genotyped_${CHR}.vcf" >> "$RAW_GVCF_LIST"
+  echo "$INPUT_DIR/genotyped_${CHR}.vcf" >> "$RAW_VCF_LIST"
 done
 
 gatk --java-options "-Xmx40g" GatherVcfs \
